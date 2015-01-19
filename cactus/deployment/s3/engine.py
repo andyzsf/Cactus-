@@ -100,7 +100,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
         try:
             domain.setup()
-        except DNSServerError, e:
+        except DNSServerError as e:
             logger.debug(e)
             ipc.signal("domain.setup.error", {"errorKey": "AccountDisabled"})
             logger.error("Account cannot use route 53")
@@ -118,7 +118,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
         try:
             domain_list = domain.nameServers()
-        except DNSServerError, e:
+        except DNSServerError as e:
             print e
             ipc.signal("domain.list.error", {"errorKey": "AccountDisabled"})
             logger.error("Account cannot use route 53")
