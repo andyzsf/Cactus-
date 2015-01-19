@@ -1,7 +1,12 @@
 #coding:utf-8
+from __future__ import unicode_literals
+
 import os
-import StringIO
+import io
 import gzip
+
+from six import BytesIO
+
 from cactus.deployment.file import BaseFile
 
 from cactus.tests.integration.s3 import S3IntegrationTestCase
@@ -23,8 +28,9 @@ class DeployTestCase(S3IntegrationTestCase):
         """
 
         payload = "\x01" * 1000 + "\x02" * 1000  # Will compress very well
+        payload = payload.encode('utf-8')
 
-        with open(os.path.join(self.site.static_path, "static.css"), 'wb') as f:
+        with io.FileIO(os.path.join(self.site.static_path, "static.css"), 'w') as f:
             f.write(payload)
 
         self.site.upload()
@@ -52,18 +58,20 @@ class DeployTestCase(S3IntegrationTestCase):
         self.assertEqual("website.s3.amazonaws.com", put.connection.host)
 
         # Are the file contents correct?
-        compressed = gzip.GzipFile(fileobj=StringIO.StringIO(put.body), mode="r")
+        compressed = gzip.GzipFile(fileobj=BytesIO(put.body), mode="r")
         self.assertEqual(payload, compressed.read())
 
     def test_compression(self):
         compress_extensions = ["yes", "html"]
         payload = "\x01" * 1000 + "\x02" * 1000  # Will compress very well
+        payload = payload.encode('utf-8')
+
         self.site.compress_extensions = compress_extensions
 
-        with open(os.path.join(self.site.static_path, "static.yes"), 'wb') as f:
+        with io.FileIO(os.path.join(self.site.static_path, "static.yes"), 'wb') as f:
             f.write(payload)
 
-        with open(os.path.join(self.site.static_path, "static.no"), 'wb') as f:
+        with io.FileIO(os.path.join(self.site.static_path, "static.no"), 'wb') as f:
             f.write(payload)
 
         self.site.upload()
